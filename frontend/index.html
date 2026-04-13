@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>URL Shortener Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet"
+  />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="page">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-logo">U</div>
+        <div>
+          <h2>URL Shortener</h2>
+          <p>Analytics Dashboard</p>
+        </div>
+      </div>
+
+      <nav class="nav">
+        <a href="#shorten" class="nav-link active">Shorten URL</a>
+        <a href="#stats" class="nav-link">Statistics</a>
+        <a href="#links" class="nav-link">All Links</a>
+        <a href="#top-links" class="nav-link">Top Links</a>
+      </nav>
+    </aside>
+
+    <main class="main">
+      <header class="hero">
+        <div>
+          <p class="badge">FULL STACK PROJECT</p>
+          <h1>URL Shortener & Analytics Dashboard</h1>
+          <p class="hero-text">
+            Shorten links, track clicks, manage users, and view analytics in one place.
+          </p>
+        </div>
+      </header>
+
+      <section class="grid">
+        <div class="card" id="create-user">
+          <div class="card-head">
+            <h3>Create User</h3>
+            <p>Add a new user to assign links.</p>
+          </div>
+
+          <div class="row">
+            <input type="text" id="userName" placeholder="Enter user name" />
+            <button class="btn btn-primary btn-fixed" onclick="createUser()">Add User</button>
+          </div>
+        </div>
+
+        <div class="card card-large" id="shorten">
+          <div class="card-head">
+            <h3>Shorten URL</h3>
+            <p>Create a short, shareable link with optional custom code.</p>
+          </div>
+
+          <div class="form-group">
+            <label for="originalUrl">Original URL</label>
+            <input type="text" id="originalUrl" placeholder="https://example.com/page" />
+          </div>
+
+          <div class="form-group">
+            <label for="customCode">Custom Code</label>
+            <input type="text" id="customCode" placeholder="optional-custom-code" />
+          </div>
+
+          <div class="form-group">
+            <label for="userSelect">Assign User</label>
+            <select id="userSelect">
+              <option value="">Select user (optional)</option>
+            </select>
+          </div>
+
+          <button class="btn btn-primary" onclick="shortenUrl()">Shorten URL</button>
+
+          <div id="result" class="result-box"></div>
+        </div>
+
+        <div class="card" id="stats">
+          <div class="card-head">
+            <h3>Statistics</h3>
+            <p>Overview of URLs, clicks, and users.</p>
+          </div>
+
+          <button class="btn btn-secondary" onclick="loadStats()">Refresh Stats</button>
+          <div id="statsBox" class="stats-grid"></div>
+        </div>
+
+        <div class="card" id="top-links">
+          <div class="card-head">
+            <h3>Top Links</h3>
+            <p>Most clicked short links.</p>
+          </div>
+
+          <button class="btn btn-secondary" onclick="loadTopLinks()">Refresh Top Links</button>
+          <div id="topLinks" class="list-box"></div>
+        </div>
+
+        <div class="card card-full" id="links">
+          <div class="card-head">
+            <h3>All Links</h3>
+            <p>Manage every shortened link from one place.</p>
+          </div>
+
+          <button class="btn btn-secondary" onclick="loadUrls()">Refresh Links</button>
+          <div id="urlList" class="list-box"></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
