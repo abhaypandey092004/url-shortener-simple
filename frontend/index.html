@@ -7,115 +7,295 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link
-    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
     rel="stylesheet"
   />
   <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-  <div class="page">
+  <div class="bg-orb orb-1"></div>
+  <div class="bg-orb orb-2"></div>
+  <div class="bg-grid"></div>
+
+  <div class="app-shell">
     <aside class="sidebar">
-      <div class="brand">
-        <div class="brand-logo">U</div>
-        <div>
-          <h2>URL Shortener</h2>
-          <p>Analytics Dashboard</p>
+      <div>
+        <div class="brand">
+          <div class="brand-logo">↗</div>
+          <div>
+            <h2>URL Shortener</h2>
+            <p>Smart Analytics Suite</p>
+          </div>
         </div>
+
+        <nav class="nav-menu">
+          <button class="nav-item active" onclick="showSection('dashboard', this)">
+            <span class="nav-dot"></span>
+            Dashboard
+          </button>
+          <button class="nav-item" onclick="showSection('shorten', this)">
+            <span class="nav-dot"></span>
+            Shorten URL
+          </button>
+          <button class="nav-item" onclick="showSection('links', this)">
+            <span class="nav-dot"></span>
+            My Links
+          </button>
+          <button class="nav-item" onclick="showSection('analytics', this)">
+            <span class="nav-dot"></span>
+            Analytics
+          </button>
+          <button class="nav-item" onclick="showSection('settings', this)">
+            <span class="nav-dot"></span>
+            Settings
+          </button>
+        </nav>
       </div>
 
-      <nav class="nav">
-        <a href="#shorten" class="nav-link active">Shorten URL</a>
-        <a href="#stats" class="nav-link">Statistics</a>
-        <a href="#links" class="nav-link">All Links</a>
-        <a href="#top-links" class="nav-link">Top Links</a>
-      </nav>
+      <div class="sidebar-footer">
+        <div class="mini-user-card">
+          <p class="mini-label">Current Session</p>
+          <p id="sidebarUser">Not logged in</p>
+        </div>
+      </div>
     </aside>
 
-    <main class="main">
-      <header class="hero">
+    <main class="main-content">
+      <header class="topbar glass-card">
         <div>
           <p class="badge">FULL STACK PROJECT</p>
           <h1>URL Shortener & Analytics Dashboard</h1>
-          <p class="hero-text">
-            Shorten links, track clicks, manage users, and view analytics in one place.
+          <p class="subtitle">
+            Manage links, users, analytics, sharing, QR codes, and expiry with a premium full-stack interface.
           </p>
+        </div>
+
+        <div class="topbar-side">
+          <button class="user-btn" onclick="toggleAuthPopup()">👤</button>
         </div>
       </header>
 
-      <section class="grid">
-        <div class="card" id="create-user">
-          <div class="card-head">
-            <h3>Create User</h3>
-            <p>Add a new user to assign links.</p>
+      <!-- Dashboard -->
+      <section id="dashboard" class="content-section active-section">
+        <div class="hero-grid">
+          <div class="glass-card premium-hero">
+            <div class="hero-badge">Overview</div>
+            <h2>Control your shortened ecosystem in one place</h2>
+            <p>
+              Create branded short links, track engagement, manage user activity,
+              generate QR codes, and monitor performance with a product-style dashboard.
+            </p>
+            <div class="hero-actions">
+              <button class="btn btn-primary" onclick="goToSection('shorten', 1)">Create Short URL</button>
+              <button class="btn btn-secondary" onclick="loadStats()">Refresh Overview</button>
+            </div>
           </div>
 
-          <div class="row">
-            <input type="text" id="userName" placeholder="Enter user name" />
-            <button class="btn btn-primary btn-fixed" onclick="createUser()">Add User</button>
+          <div class="glass-card user-card">
+            <p class="section-kicker">Active Profile</p>
+            <h3>Current User</h3>
+            <p id="currentUserText">Not logged in</p>
           </div>
         </div>
 
-        <div class="card card-large" id="shorten">
-          <div class="card-head">
-            <h3>Shorten URL</h3>
-            <p>Create a short, shareable link with optional custom code.</p>
+        <div class="stats-grid" id="statsBox"></div>
+
+        <div class="glass-card chart-panel">
+          <div class="section-head">
+            <div>
+              <p class="section-kicker">Performance</p>
+              <h3>Analytics Chart</h3>
+            </div>
+            <button class="btn btn-secondary btn-small" onclick="loadStats()">Refresh</button>
           </div>
-
-          <div class="form-group">
-            <label for="originalUrl">Original URL</label>
-            <input type="text" id="originalUrl" placeholder="https://example.com/page" />
-          </div>
-
-          <div class="form-group">
-            <label for="customCode">Custom Code</label>
-            <input type="text" id="customCode" placeholder="optional-custom-code" />
-          </div>
-
-          <div class="form-group">
-            <label for="userSelect">Assign User</label>
-            <select id="userSelect">
-              <option value="">Select user (optional)</option>
-            </select>
-          </div>
-
-          <button class="btn btn-primary" onclick="shortenUrl()">Shorten URL</button>
-
-          <div id="result" class="result-box"></div>
+          <canvas id="analyticsChart"></canvas>
         </div>
+      </section>
 
-        <div class="card" id="stats">
-          <div class="card-head">
-            <h3>Statistics</h3>
-            <p>Overview of URLs, clicks, and users.</p>
+      <!-- Shorten -->
+      <section id="shorten" class="content-section">
+        <div class="page-grid two-col">
+          <div class="glass-card">
+            <div class="section-head">
+              <div>
+                <p class="section-kicker">Shortener</p>
+                <h3>Create Short URL</h3>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="originalUrl">Original URL</label>
+              <input type="text" id="originalUrl" placeholder="https://example.com/page" />
+            </div>
+
+            <div class="form-group">
+              <label for="customCode">Custom Code</label>
+              <input type="text" id="customCode" placeholder="optional-custom-code" />
+            </div>
+
+            <div class="form-group">
+              <label for="expiresAt">Expiry Date & Time</label>
+              <input type="datetime-local" id="expiresAt" />
+            </div>
+
+            <button class="btn btn-primary" onclick="shortenUrl()">Generate Smart Link</button>
+            <div id="result" class="message-box"></div>
           </div>
 
-          <button class="btn btn-secondary" onclick="loadStats()">Refresh Stats</button>
-          <div id="statsBox" class="stats-grid"></div>
+          <div class="glass-card qr-panel">
+            <div class="section-head">
+              <div>
+                <p class="section-kicker">Share</p>
+                <h3>QR Preview</h3>
+              </div>
+            </div>
+
+            <div id="qrBox" class="qr-box">
+              <div class="qr-placeholder">QR code will appear here</div>
+            </div>
+          </div>
         </div>
+      </section>
 
-        <div class="card" id="top-links">
-          <div class="card-head">
-            <h3>Top Links</h3>
-            <p>Most clicked short links.</p>
+      <!-- Links -->
+      <section id="links" class="content-section">
+        <div class="glass-card">
+          <div class="section-head wrap-head">
+            <div>
+              <p class="section-kicker">Management</p>
+              <h3>All Links</h3>
+            </div>
+
+            <div class="head-actions">
+              <select id="filterUser" onchange="loadUrls()">
+                <option value="">All Users</option>
+              </select>
+              <button class="btn btn-secondary btn-small" onclick="loadUrls()">Refresh Links</button>
+            </div>
           </div>
 
-          <button class="btn btn-secondary" onclick="loadTopLinks()">Refresh Top Links</button>
-          <div id="topLinks" class="list-box"></div>
-        </div>
-
-        <div class="card card-full" id="links">
-          <div class="card-head">
-            <h3>All Links</h3>
-            <p>Manage every shortened link from one place.</p>
-          </div>
-
-          <button class="btn btn-secondary" onclick="loadUrls()">Refresh Links</button>
           <div id="urlList" class="list-box"></div>
         </div>
       </section>
+
+      <!-- Analytics -->
+      <section id="analytics" class="content-section">
+        <div class="page-grid two-col">
+          <div class="glass-card">
+            <div class="section-head">
+              <div>
+                <p class="section-kicker">Overview</p>
+                <h3>Statistics</h3>
+              </div>
+            </div>
+            <div class="stats-grid compact" id="analyticsStatsBox"></div>
+          </div>
+
+          <div class="glass-card">
+            <div class="section-head">
+              <div>
+                <p class="section-kicker">Insights</p>
+                <h3>Top Links</h3>
+              </div>
+              <button class="btn btn-secondary btn-small" onclick="loadTopLinks()">Refresh</button>
+            </div>
+            <div id="topLinks" class="list-box"></div>
+          </div>
+        </div>
+
+        <div class="glass-card chart-panel">
+          <div class="section-head">
+            <div>
+              <p class="section-kicker">Distribution</p>
+              <h3>Analytics Breakdown</h3>
+            </div>
+          </div>
+          <canvas id="analyticsChartSecondary"></canvas>
+        </div>
+      </section>
+
+      <!-- Settings -->
+      <section id="settings" class="content-section">
+        <div class="page-grid two-col">
+          <div class="glass-card">
+            <div class="section-head">
+              <div>
+                <p class="section-kicker">Appearance</p>
+                <h3>Theme Settings</h3>
+              </div>
+            </div>
+            <button class="btn btn-primary" onclick="toggleTheme()">Toggle Theme</button>
+          </div>
+
+          <div class="glass-card">
+            <div class="section-head">
+              <div>
+                <p class="section-kicker">Quick Actions</p>
+                <h3>Utilities</h3>
+              </div>
+            </div>
+            <div class="quick-stack">
+              <button class="btn btn-secondary" onclick="loadStats()">Refresh Stats</button>
+              <button class="btn btn-secondary" onclick="loadUrls()">Refresh Links</button>
+              <button class="btn btn-secondary" onclick="loadTopLinks()">Refresh Top Links</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Auth Popup -->
+      <div id="authPopup" class="auth-popup hidden">
+        <div class="auth-popup-card">
+          <div class="auth-popup-head">
+            <h3>Account</h3>
+            <button class="close-popup-btn" onclick="toggleAuthPopup()">×</button>
+          </div>
+
+          <div class="auth-popup-body">
+            <div class="form-group">
+              <label for="loginEmail">Email</label>
+              <input type="email" id="loginEmail" placeholder="Enter your email" />
+            </div>
+
+            <div class="form-group">
+              <label for="loginPassword">Password</label>
+              <input type="password" id="loginPassword" placeholder="Enter password" />
+            </div>
+
+            <button class="btn btn-primary" onclick="loginUser()">Login</button>
+
+            <div class="popup-divider"></div>
+
+            <div class="form-group">
+              <label for="signupName">Name</label>
+              <input type="text" id="signupName" placeholder="Enter your name" />
+            </div>
+
+            <div class="form-group">
+              <label for="signupEmail">Email</label>
+              <input type="email" id="signupEmail" placeholder="Enter your email" />
+            </div>
+
+            <div class="form-group">
+              <label for="signupPassword">Password</label>
+              <input type="password" id="signupPassword" placeholder="Enter password" />
+            </div>
+
+            <button class="btn btn-secondary popup-full-btn" onclick="signupUser()">Signup</button>
+
+            <div class="popup-divider"></div>
+
+            <button class="btn btn-danger popup-full-btn" onclick="logoutUser()">Logout</button>
+
+            <div id="authStatus" class="message-box"></div>
+          </div>
+        </div>
+      </div>
     </main>
   </div>
 
+  <div id="toastContainer" class="toast-container"></div>
   <script src="script.js"></script>
 </body>
 </html>
