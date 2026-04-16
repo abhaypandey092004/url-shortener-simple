@@ -5,10 +5,10 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
 
-app.get("/", (req, res) => {
-  res.send("Server working");
-});
 const app = express();
+const PORT = process.env.PORT || 5000;
+const JWT_SECRET = process.env.JWT_SECRET || "my_super_secret_key";
+const APP_BASE_URL = process.env.APP_BASE_URL || `http://localhost:${PORT}`;
 
 app.use(cors());
 app.use(express.json());
@@ -17,7 +17,7 @@ const db = mysql.createConnection({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME
+  database: process.env.DB_NAME,
 });
 
 db.connect((err) => {
@@ -28,9 +28,6 @@ db.connect((err) => {
   console.log("✅ Database connected");
 });
 
-const PORT = process.env.PORT || 5000;
-const JWT_SECRET = process.env.JWT_SECRET || "my_super_secret_key";
-
 const URL_REGEX =
   /^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,10}\b([-a-zA-Z0-9()@:%_+.~#?&/=]*)$/;
 
@@ -39,7 +36,8 @@ function isValidUrl(url) {
 }
 
 function generateShortCode(length = 6) {
-  const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  const chars =
+    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
   let result = "";
 
   for (let i = 0; i < length; i++) {
@@ -56,10 +54,10 @@ function generateUniqueCode(callback) {
     if (err) return callback(err);
 
     if (rows.length > 0) {
-      generateUniqueCode(callback);
-    } else {
-      callback(null, code);
+      return generateUniqueCode(callback);
     }
+
+    callback(null, code);
   });
 }
 
@@ -81,6 +79,11 @@ function authenticateToken(req, res, next) {
   }
 }
 
+/* Root */
+app.get("/", (req, res) => {
+  res.send("Server working");
+});
+
 /* Health */
 app.get("/api/health", (req, res) => {
   res.json({ status: "ok" });
@@ -99,50 +102,56 @@ app.post("/api/signup", async (req, res) => {
   }
 
   if (!password || password.length < 6) {
-    return res.status(400).json({ error: "Password must be at least 6 characters" });
+    return res
+      .status(400)
+      .json({ error: "Password must be at least 6 characters" });
   }
 
-  db.query("SELECT id FROM users WHERE email = ?", [email.trim()], async (err, rows) => {
-    if (err) {
-      return res.status(500).json({ error: "Failed to check existing user" });
-    }
+  db.query(
+    "SELECT id FROM users WHERE email = ?",
+    [email.trim()],
+    async (err, rows) => {
+      if (err) {
+        return res.status(500).json({ error: "Failed to check existing user" });
+      }
 
-    if (rows.length > 0) {
-      return res.status(400).json({ error: "Email already registered" });
-    }
+      if (rows.length > 0) {
+        return res.status(400).json({ error: "Email already registered" });
+      }
 
-    try {
-      const hashedPassword = await bcrypt.hash(password, 10);
+      try {
+        const hashedPassword = await bcrypt.hash(password, 10);
 
-      db.query(
-        "INSERT INTO users (name, email, password) VALUES (?, ?, ?)",
-        [name.trim(), email.trim(), hashedPassword],
-        (insertErr, result) => {
-          if (insertErr) {
-            return res.status(500).json({ error: "Failed to create account" });
-          }
-
-          const token = jwt.sign(
-            { id: result.insertId, name: name.trim(), email: email.trim() },
-            JWT_SECRET,
-            { expiresIn: "7d" }
-          );
-
-          res.json({
-            message: "Signup successful",
-            token,
-            user: {
-              id: result.insertId,
-              name: name.trim(),
-              email: email.trim()
+        db.query(
+          "INSERT INTO users (name, email, password) VALUES (?, ?, ?)",
+          [name.trim(), email.trim(), hashedPassword],
+          (insertErr, result) => {
+            if (insertErr) {
+              return res.status(500).json({ error: "Failed to create account" });
             }
-          });
-        }
-      );
-    } catch (hashError) {
-      return res.status(500).json({ error: "Failed to secure password" });
+
+            const token = jwt.sign(
+              { id: result.insertId, name: name.trim(), email: email.trim() },
+              JWT_SECRET,
+              { expiresIn: "7d" }
+            );
+
+            return res.json({
+              message: "Signup successful",
+              token,
+              user: {
+                id: result.insertId,
+                name: name.trim(),
+                email: email.trim(),
+              },
+            });
+          }
+        );
+      } catch (hashError) {
+        return res.status(500).json({ error: "Failed to secure password" });
+      }
     }
-  });
+  );
 });
 
 /* Login */
@@ -157,43 +166,47 @@ app.post("/api/login", (req, res) => {
     return res.status(400).json({ error: "Password is required" });
   }
 
-  db.query("SELECT * FROM users WHERE email = ?", [email.trim()], async (err, rows) => {
-    if (err) {
-      return res.status(500).json({ error: "Failed to login" });
-    }
+  db.query(
+    "SELECT * FROM users WHERE email = ?",
+    [email.trim()],
+    async (err, rows) => {
+      if (err) {
+        return res.status(500).json({ error: "Failed to login" });
+      }
 
-    if (rows.length === 0) {
-      return res.status(400).json({ error: "Invalid email or password" });
-    }
-
-    const user = rows[0];
-
-    try {
-      const isMatch = await bcrypt.compare(password, user.password);
-
-      if (!isMatch) {
+      if (rows.length === 0) {
         return res.status(400).json({ error: "Invalid email or password" });
       }
 
-      const token = jwt.sign(
-        { id: user.id, name: user.name, email: user.email },
-        JWT_SECRET,
-        { expiresIn: "7d" }
-      );
+      const user = rows[0];
 
-      res.json({
-        message: "Login successful",
-        token,
-        user: {
-          id: user.id,
-          name: user.name,
-          email: user.email
+      try {
+        const isMatch = await bcrypt.compare(password, user.password);
+
+        if (!isMatch) {
+          return res.status(400).json({ error: "Invalid email or password" });
         }
-      });
-    } catch (compareError) {
-      return res.status(500).json({ error: "Failed to verify password" });
+
+        const token = jwt.sign(
+          { id: user.id, name: user.name, email: user.email },
+          JWT_SECRET,
+          { expiresIn: "7d" }
+        );
+
+        return res.json({
+          message: "Login successful",
+          token,
+          user: {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+          },
+        });
+      } catch (compareError) {
+        return res.status(500).json({ error: "Failed to verify password" });
+      }
     }
-  });
+  );
 });
 
 /* Current user */
@@ -210,7 +223,7 @@ app.get("/api/users", (req, res) => {
         return res.status(500).json({ error: "Failed to fetch users" });
       }
 
-      res.json(rows);
+      return res.json(rows);
     }
   );
 });
@@ -239,7 +252,7 @@ app.get("/api/users/:id/urls", (req, res) => {
       return res.status(500).json({ error: "Failed to fetch user URLs" });
     }
 
-    res.json(rows);
+    return res.json(rows);
   });
 });
 
@@ -250,13 +263,13 @@ app.post("/api/shorten", authenticateToken, (req, res) => {
 
   if (!originalUrl || !isValidUrl(originalUrl)) {
     return res.status(400).json({
-      error: "Invalid URL. Must start with http:// or https://"
+      error: "Invalid URL. Must start with http:// or https://",
     });
   }
 
   if (customCode && !/^[a-zA-Z0-9]{3,20}$/.test(customCode)) {
     return res.status(400).json({
-      error: "Custom code must be 3 to 20 alphanumeric characters"
+      error: "Custom code must be 3 to 20 alphanumeric characters",
     });
   }
 
@@ -269,7 +282,7 @@ app.post("/api/shorten", authenticateToken, (req, res) => {
   const saveUrl = (code) => {
     db.query(
       "INSERT INTO urls (original_url, short_code, user_id, expires_at) VALUES (?, ?, ?, ?)",
-      [originalUrl, code, userId, expiryValue ? expiryValue : null],
+      [originalUrl, code, userId, expiryValue],
       (err, result) => {
         if (err) {
           if (err.code === "ER_DUP_ENTRY") {
@@ -279,32 +292,32 @@ app.post("/api/shorten", authenticateToken, (req, res) => {
           return res.status(500).json({ error: "Failed to shorten URL" });
         }
 
-        res.json({
+        return res.json({
           id: result.insertId,
           originalUrl,
           shortCode: code,
           userId,
           expiresAt: expiryValue,
-          shortUrl: `http://localhost:${PORT}/${code}`
+          shortUrl: `${APP_BASE_URL}/${code}`,
         });
       }
     );
   };
 
   if (customCode) {
-    saveUrl(customCode);
-  } else {
-    generateUniqueCode((err, code) => {
-      if (err) {
-        return res.status(500).json({ error: "Code generation failed" });
-      }
-
-      saveUrl(code);
-    });
+    return saveUrl(customCode);
   }
+
+  generateUniqueCode((err, code) => {
+    if (err) {
+      return res.status(500).json({ error: "Code generation failed" });
+    }
+
+    saveUrl(code);
+  });
 });
 
-/* Redirect + increment click count + expiry check */
+/* Redirect */
 app.get("/:code", (req, res) => {
   const code = req.params.code;
 
@@ -331,13 +344,13 @@ app.get("/:code", (req, res) => {
           return res.status(500).send("Failed to update click count");
         }
 
-        res.redirect(url.original_url);
+        return res.redirect(url.original_url);
       }
     );
   });
 });
 
-/* Get all URLs with optional filter by user */
+/* Get all URLs */
 app.get("/api/urls", (req, res) => {
   const { userId } = req.query;
 
@@ -369,7 +382,7 @@ app.get("/api/urls", (req, res) => {
       return res.status(500).json({ error: "Failed to fetch URLs" });
     }
 
-    res.json(rows);
+    return res.json(rows);
   });
 });
 
@@ -386,10 +399,12 @@ app.delete("/api/urls/:code", authenticateToken, (req, res) => {
       }
 
       if (result.affectedRows === 0) {
-        return res.status(404).json({ error: "URL not found or not owned by you" });
+        return res
+          .status(404)
+          .json({ error: "URL not found or not owned by you" });
       }
 
-      res.json({ success: true });
+      return res.json({ success: true });
     }
   );
 });
@@ -416,11 +431,11 @@ app.get("/api/stats", (req, res) => {
         return res.status(500).json({ error: "Failed to fetch user stats" });
       }
 
-      res.json({
+      return res.json({
         totalUrls: urlStats[0].totalUrls,
         totalClicks: urlStats[0].totalClicks,
         avgClicksPerUrl: Number(urlStats[0].avgClicksPerUrl).toFixed(2),
-        totalUsers: userStats[0].totalUsers
+        totalUsers: userStats[0].totalUsers,
       });
     });
   });
@@ -447,10 +462,10 @@ app.get("/api/top-links", (req, res) => {
       return res.status(500).json({ error: "Failed to fetch top links" });
     }
 
-    res.json(rows);
+    return res.json(rows);
   });
 });
 
 app.listen(PORT, () => {
-  console.log(`✅ Server running on http://localhost:${PORT}`);
+  console.log(`✅ Server running on ${APP_BASE_URL}`);
 });
