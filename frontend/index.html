@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>URL Shortener Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+    rel="stylesheet"
+  />
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <div class="bg-orb orb-1"></div>
+  <div class="bg-orb orb-2"></div>
+  <div class="bg-grid"></div>
+
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div>
+        <div class="brand">
+          <div class="brand-logo">↗</div>
+          <div>
+            <h2>URL Shortener</h2>
+            <p>Smart Analytics Suite</p>
+          </div>
+        </div>
+
+        <nav class="nav-menu">
+          <button class="nav-item active" onclick="showSection('dashboard', this)">
+            <span class="nav-dot"></span>
+            Dashboard
+          </button>
+          <button class="nav-item" onclick="showSection('shorten', this)">
+            <span class="nav-dot"></span>
+            Shorten URL
+          </button>
+          <button class="nav-item" onclick="showSection('links', this)">
+            <span class="nav-dot"></span>
+            My Links
+          </button>
+          <button class="nav-item" onclick="showSection('analytics', this)">
+            <span class="nav-dot"></span>
+            Analytics
+          </button>
+          <button class="nav-item" onclick="showSection('settings', this)">
+            <span class="nav-dot"></span>
+            Settings
+          </button>
+        </nav>
+      </div>
+
+      <div class="sidebar-footer">
+        <div class="mini-user-card">
+          <p class="mini-label">Current Session</p>
+          <p id="sidebarUser">Not logged in</p>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <header class="topbar glass-card">
+        <div>
+          <p class="badge">FULL STACK PROJECT</p>
+          <h1>URL Shortener & Analytics Dashboard</h1>
+          <p class="subtitle">
+            Manage links, users, analytics, sharing, QR codes, and expiry with a premium full-stack interface.
+          </p>
+        </div>
+
+        <div class="topbar-side">
+          <button class="user-btn" onclick="toggleAuthPopup()">👤</button>
+        </div>
+      </header>
+
+      <!-- Dashboard -->
+      <section id="dashboard" class="content-section active-section">
+        <div class="hero-grid">
+          <div class="glass-card premium-hero">
+            <div class="hero-badge">Overview</div>
+            <h2>Control your shortened ecosystem in one place</h2>
+            <p>
+              Create branded short links, track engagement, manage user activity,
+              generate QR codes, and monitor performance with a product-style dashboard.
+            </p>
+            <div class="hero-actions">
+              <button class="btn btn-primary" onclick="goToSection('shorten', 1)">Create Short URL</button>
+              <button class="btn btn-secondary" onclick="loadStats()">Refresh Overview</button>
+            </div>
+          </div>
+
+          <div class="glass-card user-card">
+            <p class="section-kicker">Active Profile</p>
+            <h3>Current User</h3>
+            <p id="currentUserText">Not logged in</p>
+          </div>
+        </div>
+
+        <div class="stats-grid" id="statsBox"></div>
+      </section>
+
+      <!-- Shorten -->
+      <section id="shorten" class="content-section">
+        <div class="glass-card">
+          <div class="section-header">
+            <div>
+              <h3>Shorten URL</h3>
+              <p>Create a smart link with tracking</p>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Original URL</label>
+            <input type="text" id="originalUrl" placeholder="https://example.com/very-long-link" />
+          </div>
+          <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+            <div class="form-group">
+              <label>Custom Alias (Optional)</label>
+              <input type="text" id="customCode" placeholder="my-custom-link" />
+            </div>
+            <div class="form-group">
+              <label>Expiry Date (Optional)</label>
+              <input type="date" id="expiresAt" />
+            </div>
+          </div>
+          <button class="btn btn-primary" onclick="shortenUrl()">Generate Smart Link</button>
+          
+          <div id="result" class="message-box"></div>
+          <div id="qrBox" class="qr-container"></div>
+        </div>
+      </section>
+
+      <!-- Links -->
+      <section id="links" class="content-section">
+        <div class="section-header">
+          <div>
+            <h3>My Links</h3>
+            <p>Manage and track your shortened URLs</p>
+          </div>
+          <button class="btn btn-secondary btn-small" onclick="exportLinksToCSV()">Export CSV</button>
+        </div>
+
+        <div class="controls-grid">
+          <div class="search-box">
+            <input type="text" id="linkSearch" placeholder="Search by code or URL..." oninput="filterUrls()" />
+          </div>
+          <div class="filter-box">
+            <select id="statusFilter" onchange="filterUrls()">
+              <option value="all">All Links</option>
+              <option value="active">Active</option>
+              <option value="expired">Expired</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="urlList" class="url-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px;">
+          <!-- URLs will load here -->
+          <div class="empty-state">
+            <p>No links found. Create your first link!</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Analytics -->
+      <section id="analytics" class="content-section">
+        <div class="section-header">
+          <div>
+            <h3>Advanced Analytics</h3>
+            <p>Detailed breakdown of your link performance</p>
+          </div>
+        </div>
+
+        <div id="analyticsStatsBox" class="stats-grid compact"></div>
+
+        <div class="analytics-charts-grid">
+          <div class="glass-card chart-container full-width" style="grid-column: 1 / -1; height: 400px;">
+            <h4>Clicks Trend (Last 7 Days)</h4>
+            <canvas id="clicksChart"></canvas>
+          </div>
+          <div class="glass-card chart-container" style="height: 350px;">
+            <h4>Devices Breakdown</h4>
+            <canvas id="deviceChart"></canvas>
+          </div>
+          <div class="glass-card chart-container" style="height: 350px;">
+            <h4>Browsers Distribution</h4>
+            <canvas id="browserChart"></canvas>
+          </div>
+          <div class="glass-card chart-container" style="height: 350px;">
+            <h4>Operating Systems</h4>
+            <canvas id="osChart"></canvas>
+          </div>
+          <div class="glass-card top-links-card" style="height: 350px; overflow-y: auto;">
+            <h4>Top 5 Performing Links</h4>
+            <div id="topLinks" class="top-links-list"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Settings -->
+      <section id="settings" class="content-section">
+        <div class="glass-card" style="padding: 24px;">
+          <div class="section-header">
+            <h3>Settings</h3>
+          </div>
+          <div class="form-group">
+            <label>Appearance</label>
+            <button class="btn btn-secondary" onclick="toggleTheme()">Toggle Dark/Light Mode</button>
+          </div>
+          <div class="form-group" style="margin-top: 24px;">
+            <label>Data Management</label>
+            <button class="btn btn-secondary" onclick="exportLinksToCSV()">Export All Links (CSV)</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Auth Popup -->
+      <div id="authPopup" class="auth-popup hidden">
+        <div class="auth-popup-card">
+          <div class="auth-popup-head">
+            <h3>Account</h3>
+            <button class="close-popup-btn" onclick="toggleAuthPopup()">×</button>
+          </div>
+
+          <div class="auth-popup-body">
+            <div class="form-group">
+              <label for="loginEmail">Email</label>
+              <input type="email" id="loginEmail" placeholder="Enter your email" />
+            </div>
+
+            <div class="form-group">
+              <label for="loginPassword">Password</label>
+              <input type="password" id="loginPassword" placeholder="Enter password" />
+            </div>
+
+            <button class="btn btn-primary" onclick="loginUser()">Login</button>
+
+            <div class="popup-divider"></div>
+
+            <div class="form-group">
+              <label for="signupName">Name</label>
+              <input type="text" id="signupName" placeholder="Enter your name" />
+            </div>
+
+            <div class="form-group">
+              <label for="signupEmail">Email</label>
+              <input type="email" id="signupEmail" placeholder="Enter your email" />
+            </div>
+
+            <div class="form-group">
+              <label for="signupPassword">Password</label>
+              <input type="password" id="signupPassword" placeholder="Enter password" />
+            </div>
+
+            <button class="btn btn-secondary popup-full-btn" onclick="signupUser()">Signup</button>
+
+            <div class="popup-divider"></div>
+
+            <button class="btn btn-danger popup-full-btn" onclick="logoutUser()">Logout</button>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <div id="toastContainer" class="toast-container"></div>
+  <script src="script.js"></script>
+</body>
+</html>

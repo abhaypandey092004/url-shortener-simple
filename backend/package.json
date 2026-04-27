@@ -1,0 +1,25 @@
+{
+  "name": "url-shortener-backend",
+  "version": "2.0.0",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "predev": "npx kill-port 5000 || exit 0",
+    "dev": "nodemon"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.38.0",
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "express-rate-limit": "^6.7.0",
+    "express-validator": "^7.0.1",
+    "helmet": "^7.0.0",
+    "jsonwebtoken": "^9.0.2",
+    "useragent": "^2.3.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}
