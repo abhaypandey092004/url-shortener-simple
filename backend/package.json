@@ -3,34 +3,21 @@
   "version": "2.0.0",
   "main": "server.js",
   "scripts": {
-<<<<<<< HEAD
     "start": "node server.js",
-    "predev": "npx kill-port 5000 || exit 0",
-    "dev": "nodemon"
+    "dev": "nodemon server.js"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.38.0",
-=======
-    "start": "node server.js"
-  },
-  "dependencies": {
->>>>>>> 0ca757b01c82d1657c42d8d3dd5af3f9c25d7254
+    "@supabase/supabase-js": "^2.45.4",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
-<<<<<<< HEAD
-    "express-rate-limit": "^6.7.0",
-    "express-validator": "^7.0.1",
-    "helmet": "^7.0.0",
+    "express-rate-limit": "^7.4.1",
+    "helmet": "^7.1.0",
     "jsonwebtoken": "^9.0.2",
     "useragent": "^2.3.0"
   },
   "devDependencies": {
-    "nodemon": "^3.0.1"
-=======
-    "jsonwebtoken": "^9.0.2",
-    "mysql2": "^3.11.0"
->>>>>>> 0ca757b01c82d1657c42d8d3dd5af3f9c25d7254
+    "nodemon": "^3.1.7"
   }
 }
