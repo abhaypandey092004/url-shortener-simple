@@ -169,7 +169,7 @@ const shutdown = () => {
 };
 process.on("SIGTERM", shutdown);
 process.on("SIGINT", shutdown);
-=======
+
 const mysql = require("mysql2");
 const cors = require("cors");
 const bcrypt = require("bcryptjs");
