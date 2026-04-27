@@ -100,10 +100,25 @@
         </div>
 
         <div class="stats-grid" id="statsBox"></div>
+<<<<<<< HEAD
+=======
+
+        <div class="glass-card chart-panel">
+          <div class="section-head">
+            <div>
+              <p class="section-kicker">Performance</p>
+              <h3>Analytics Chart</h3>
+            </div>
+            <button class="btn btn-secondary btn-small" onclick="loadStats()">Refresh</button>
+          </div>
+          <canvas id="analyticsChart"></canvas>
+        </div>
+>>>>>>> 0ca757b01c82d1657c42d8d3dd5af3f9c25d7254
       </section>
 
       <!-- Shorten -->
       <section id="shorten" class="content-section">
+<<<<<<< HEAD
         <div class="glass-card">
           <div class="section-header">
             <div>
@@ -129,11 +144,54 @@
           
           <div id="result" class="message-box"></div>
           <div id="qrBox" class="qr-container"></div>
+=======
+        <div class="page-grid two-col">
+          <div class="glass-card">
+            <div class="section-head">
+              <div>
+                <p class="section-kicker">Shortener</p>
+                <h3>Create Short URL</h3>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="originalUrl">Original URL</label>
+              <input type="text" id="originalUrl" placeholder="https://example.com/page" />
+            </div>
+
+            <div class="form-group">
+              <label for="customCode">Custom Code</label>
+              <input type="text" id="customCode" placeholder="optional-custom-code" />
+            </div>
+
+            <div class="form-group">
+              <label for="expiresAt">Expiry Date & Time</label>
+              <input type="datetime-local" id="expiresAt" />
+            </div>
+
+            <button class="btn btn-primary" onclick="shortenUrl()">Generate Smart Link</button>
+            <div id="result" class="message-box"></div>
+          </div>
+
+          <div class="glass-card qr-panel">
+            <div class="section-head">
+              <div>
+                <p class="section-kicker">Share</p>
+                <h3>QR Preview</h3>
+              </div>
+            </div>
+
+            <div id="qrBox" class="qr-box">
+              <div class="qr-placeholder">QR code will appear here</div>
+            </div>
+          </div>
+>>>>>>> 0ca757b01c82d1657c42d8d3dd5af3f9c25d7254
         </div>
       </section>
 
       <!-- Links -->
       <section id="links" class="content-section">
+<<<<<<< HEAD
         <div class="section-header">
           <div>
             <h3>My Links</h3>
@@ -160,11 +218,30 @@
           <div class="empty-state">
             <p>No links found. Create your first link!</p>
           </div>
+=======
+        <div class="glass-card">
+          <div class="section-head wrap-head">
+            <div>
+              <p class="section-kicker">Management</p>
+              <h3>All Links</h3>
+            </div>
+
+            <div class="head-actions">
+              <select id="filterUser" onchange="loadUrls()">
+                <option value="">All Users</option>
+              </select>
+              <button class="btn btn-secondary btn-small" onclick="loadUrls()">Refresh Links</button>
+            </div>
+          </div>
+
+          <div id="urlList" class="list-box"></div>
+>>>>>>> 0ca757b01c82d1657c42d8d3dd5af3f9c25d7254
         </div>
       </section>
 
       <!-- Analytics -->
       <section id="analytics" class="content-section">
+<<<<<<< HEAD
         <div class="section-header">
           <div>
             <h3>Advanced Analytics</h3>
@@ -195,11 +272,45 @@
             <h4>Top 5 Performing Links</h4>
             <div id="topLinks" class="top-links-list"></div>
           </div>
+=======
+        <div class="page-grid two-col">
+          <div class="glass-card">
+            <div class="section-head">
+              <div>
+                <p class="section-kicker">Overview</p>
+                <h3>Statistics</h3>
+              </div>
+            </div>
+            <div class="stats-grid compact" id="analyticsStatsBox"></div>
+          </div>
+
+          <div class="glass-card">
+            <div class="section-head">
+              <div>
+                <p class="section-kicker">Insights</p>
+                <h3>Top Links</h3>
+              </div>
+              <button class="btn btn-secondary btn-small" onclick="loadTopLinks()">Refresh</button>
+            </div>
+            <div id="topLinks" class="list-box"></div>
+          </div>
+        </div>
+
+        <div class="glass-card chart-panel">
+          <div class="section-head">
+            <div>
+              <p class="section-kicker">Distribution</p>
+              <h3>Analytics Breakdown</h3>
+            </div>
+          </div>
+          <canvas id="analyticsChartSecondary"></canvas>
+>>>>>>> 0ca757b01c82d1657c42d8d3dd5af3f9c25d7254
         </div>
       </section>
 
       <!-- Settings -->
       <section id="settings" class="content-section">
+<<<<<<< HEAD
         <div class="glass-card" style="padding: 24px;">
           <div class="section-header">
             <h3>Settings</h3>
@@ -211,6 +322,31 @@
           <div class="form-group" style="margin-top: 24px;">
             <label>Data Management</label>
             <button class="btn btn-secondary" onclick="exportLinksToCSV()">Export All Links (CSV)</button>
+=======
+        <div class="page-grid two-col">
+          <div class="glass-card">
+            <div class="section-head">
+              <div>
+                <p class="section-kicker">Appearance</p>
+                <h3>Theme Settings</h3>
+              </div>
+            </div>
+            <button class="btn btn-primary" onclick="toggleTheme()">Toggle Theme</button>
+          </div>
+
+          <div class="glass-card">
+            <div class="section-head">
+              <div>
+                <p class="section-kicker">Quick Actions</p>
+                <h3>Utilities</h3>
+              </div>
+            </div>
+            <div class="quick-stack">
+              <button class="btn btn-secondary" onclick="loadStats()">Refresh Stats</button>
+              <button class="btn btn-secondary" onclick="loadUrls()">Refresh Links</button>
+              <button class="btn btn-secondary" onclick="loadTopLinks()">Refresh Top Links</button>
+            </div>
+>>>>>>> 0ca757b01c82d1657c42d8d3dd5af3f9c25d7254
           </div>
         </div>
       </section>
@@ -258,6 +394,11 @@
             <div class="popup-divider"></div>
 
             <button class="btn btn-danger popup-full-btn" onclick="logoutUser()">Logout</button>
+<<<<<<< HEAD
+=======
+
+            <div id="authStatus" class="message-box"></div>
+>>>>>>> 0ca757b01c82d1657c42d8d3dd5af3f9c25d7254
           </div>
         </div>
       </div>

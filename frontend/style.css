@@ -589,6 +589,7 @@ select:focus {
   z-index: 1;
 }
 
+<<<<<<< HEAD
 .analytics-charts-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -706,6 +707,10 @@ select:focus {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+=======
+.chart-panel {
+  margin-top: 22px;
+>>>>>>> 0ca757b01c82d1657c42d8d3dd5af3f9c25d7254
 }
 
 .list-box {
