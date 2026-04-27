@@ -315,3 +315,10 @@ function showSection(sectionId) {
     target.style.display = "block";
   }
 }
+// Go to section from buttons
+function goToSection(sectionId, navIndex) {
+  const navItems = document.querySelectorAll(".nav-item");
+  const navButton = navItems[navIndex] || null;
+
+  showSection(sectionId, navButton);
+}
