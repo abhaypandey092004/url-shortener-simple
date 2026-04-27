@@ -291,3 +291,27 @@ window.onload = () => {
     loadStats();
   }
 };
+// ===== UI FUNCTIONS FIX =====
+
+// Auth popup toggle
+function toggleAuthPopup() {
+  const popup = document.getElementById("authPopup");
+  if (!popup) return;
+
+  popup.style.display =
+    popup.style.display === "block" ? "none" : "block";
+}
+
+// Section switch (Dashboard / Links / Analytics etc.)
+function showSection(sectionId) {
+  const sections = document.querySelectorAll(".section");
+
+  sections.forEach((sec) => {
+    sec.style.display = "none";
+  });
+
+  const target = document.getElementById(sectionId);
+  if (target) {
+    target.style.display = "block";
+  }
+}
