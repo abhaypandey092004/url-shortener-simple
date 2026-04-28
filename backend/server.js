@@ -12,6 +12,8 @@ const analyticsRoutes = require("./routes/analyticsRoutes");
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+app.set("trust proxy", 1);
+
 process.on("unhandledRejection", (reason, promise) => {
   console.error("❌ Unhandled Rejection at:", promise, "reason:", reason);
 });
@@ -25,19 +27,32 @@ app.use(helmet({ contentSecurityPolicy: false }));
 
 const allowedOrigins = [
   process.env.CLIENT_URL,
+  "https://url-shortener-simple.vercel.app",
   "http://localhost:5500",
   "http://127.0.0.1:5500",
   "http://localhost:3000",
   "http://127.0.0.1:3000"
 ].filter(Boolean);
 
-app.use(cors({
-  origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
-    return callback(new Error("Not allowed by CORS"));
-  },
-  credentials: true
-}));
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true);
+
+      const normalizedOrigin = origin.replace(/\/$/, "");
+      const normalizedAllowed = allowedOrigins.map((url) =>
+        url.replace(/\/$/, "")
+      );
+
+      if (normalizedAllowed.includes(normalizedOrigin)) {
+        return callback(null, true);
+      }
+
+      return callback(new Error("Not allowed by CORS"));
+    },
+    credentials: true
+  })
+);
 
 app.use(express.json());
 
@@ -106,15 +121,17 @@ app.get("/:code", async (req, res) => {
             .eq("id", url.id);
         }
 
-        await supabase.from("url_clicks").insert([{
-          url_id: url.id,
-          ip_address: ipAddress,
-          user_agent: ua,
-          referrer,
-          device_type: deviceType,
-          browser: agent.family,
-          os: agent.os.family
-        }]);
+        await supabase.from("url_clicks").insert([
+          {
+            url_id: url.id,
+            ip_address: ipAddress,
+            user_agent: ua,
+            referrer,
+            device_type: deviceType,
+            browser: agent.family,
+            os: agent.os.family
+          }
+        ]);
       } catch (err) {
         console.error("❌ Tracking Error:", err.message);
       }
@@ -140,6 +157,7 @@ server.on("error", (err) => {
     console.error(`❌ Port ${PORT} is busy. Change PORT in .env or stop old server.`);
     process.exit(1);
   }
+
   throw err;
 });
 
