@@ -1,15 +1,35 @@
 // CONFIG
-const API_BASE = window.location.hostname.includes("localhost")
-  ? "http://localhost:5000/api"
-  : "https://url-shortener-backend-ib6u.onrender.com/api";
+const API_BASE =
+  window.location.hostname.includes("localhost") ||
+  window.location.hostname.includes("127.0.0.1")
+    ? "http://localhost:5000/api"
+    : "https://url-shortener-backend-ib6u.onrender.com/api";
 
-const SHORT_BASE = window.location.hostname.includes("localhost")
-  ? "http://localhost:5000"
-  : "https://url-shortener-backend-ib6u.onrender.com";
+const SHORT_BASE =
+  window.location.hostname.includes("localhost") ||
+  window.location.hostname.includes("127.0.0.1")
+    ? "http://localhost:5000"
+    : "https://url-shortener-backend-ib6u.onrender.com";
 
-// AUTH
+// BASIC HELPERS
 function getToken() {
   return localStorage.getItem("token");
+}
+
+function getCurrentUser() {
+  try {
+    const user = localStorage.getItem("user");
+    return user ? JSON.parse(user) : null;
+  } catch {
+    return null;
+  }
+}
+
+function authHeaders() {
+  return {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${getToken()}`
+  };
 }
 
 function setCurrentUser(user, token) {
@@ -24,25 +44,18 @@ function clearCurrentUser() {
   updateAuthUI();
 }
 
-function getCurrentUser() {
-  const u = localStorage.getItem("user");
-  return u ? JSON.parse(u) : null;
+function escapeHtml(value) {
+  const div = document.createElement("div");
+  div.textContent = value ?? "";
+  return div.innerHTML;
 }
 
-function authHeaders() {
-  return {
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${getToken()}`
-  };
-}
-
+// UI
 function updateAuthUI() {
   const user = getCurrentUser();
 
   const sidebarUser = document.getElementById("sidebarUser");
-  if (sidebarUser) {
-    sidebarUser.textContent = user ? user.name : "Not logged in";
-  }
+  if (sidebarUser) sidebarUser.textContent = user ? user.name : "Not logged in";
 
   const currentUserText = document.getElementById("currentUserText");
   if (currentUserText) {
@@ -52,10 +65,53 @@ function updateAuthUI() {
   }
 }
 
-// LOGIN
+function toggleAuthPopup() {
+  const popup = document.getElementById("authPopup");
+  if (!popup) return;
+  popup.classList.toggle("hidden");
+}
+
+function showSection(sectionId, clickedButton) {
+  document.querySelectorAll(".content-section").forEach((section) => {
+    section.classList.remove("active-section");
+  });
+
+  const target = document.getElementById(sectionId);
+  if (target) target.classList.add("active-section");
+
+  document.querySelectorAll(".nav-item").forEach((item) => {
+    item.classList.remove("active");
+  });
+
+  if (clickedButton) clickedButton.classList.add("active");
+
+  if (sectionId === "dashboard") loadStats();
+  if (sectionId === "links") loadUrls();
+  if (sectionId === "analytics") {
+    loadStats();
+    loadTopLinks();
+  }
+}
+
+function goToSection(sectionId, navIndex) {
+  const navItems = document.querySelectorAll(".nav-item");
+  showSection(sectionId, navItems[navIndex] || null);
+}
+
+function toggleTheme() {
+  document.body.classList.toggle("light");
+  localStorage.setItem(
+    "theme",
+    document.body.classList.contains("light") ? "light" : "dark"
+  );
+}
+
+// AUTH
 async function loginUser() {
-  const email = document.getElementById("loginEmail").value.trim();
-  const password = document.getElementById("loginPassword").value.trim();
+  const email = document.getElementById("loginEmail")?.value.trim();
+  const password = document.getElementById("loginPassword")?.value.trim();
+
+  if (!email || !password) return alert("Please enter email and password");
 
   const res = await fetch(`${API_BASE}/auth/login`, {
     method: "POST",
@@ -67,14 +123,17 @@ async function loginUser() {
   if (!res.ok) return alert(data.error || "Login failed");
 
   setCurrentUser(data.user, data.token);
-  location.reload();
+  toggleAuthPopup();
+  loadStats();
+  loadUrls();
 }
 
-// SIGNUP
 async function signupUser() {
-  const name = document.getElementById("signupName").value.trim();
-  const email = document.getElementById("signupEmail").value.trim();
-  const password = document.getElementById("signupPassword").value.trim();
+  const name = document.getElementById("signupName")?.value.trim();
+  const email = document.getElementById("signupEmail")?.value.trim();
+  const password = document.getElementById("signupPassword")?.value.trim();
+
+  if (!name || !email || !password) return alert("Please fill all signup fields");
 
   const res = await fetch(`${API_BASE}/auth/signup`, {
     method: "POST",
@@ -86,7 +145,9 @@ async function signupUser() {
   if (!res.ok) return alert(data.error || "Signup failed");
 
   setCurrentUser(data.user, data.token);
-  location.reload();
+  toggleAuthPopup();
+  loadStats();
+  loadUrls();
 }
 
 function logoutUser() {
@@ -94,16 +155,15 @@ function logoutUser() {
   location.reload();
 }
 
-// SHORTEN URL
+// SHORTEN
 async function shortenUrl() {
-  if (!getToken()) {
-    alert("Please login first");
-    return;
-  }
+  if (!getToken()) return alert("Please login first");
 
-  const originalUrl = document.getElementById("originalUrl").value.trim();
-  const customCode = document.getElementById("customCode").value.trim().toLowerCase();
+  const originalUrl = document.getElementById("originalUrl")?.value.trim();
+  const customCode = document.getElementById("customCode")?.value.trim().toLowerCase();
   const expiresAt = document.getElementById("expiresAt")?.value || null;
+
+  if (!originalUrl) return alert("Please enter original URL");
 
   const res = await fetch(`${API_BASE}/urls/shorten`, {
     method: "POST",
@@ -119,7 +179,7 @@ async function shortenUrl() {
     result.innerHTML = `
       <div class="message-success">
         <strong>Short URL created:</strong><br>
-        <a href="${data.shortUrl}" target="_blank">${data.shortUrl}</a>
+        <a href="${escapeHtml(data.shortUrl)}" target="_blank">${escapeHtml(data.shortUrl)}</a>
       </div>
     `;
   }
@@ -133,16 +193,13 @@ async function shortenUrl() {
 
   document.getElementById("originalUrl").value = "";
   document.getElementById("customCode").value = "";
-  if (document.getElementById("expiresAt")) {
-    document.getElementById("expiresAt").value = "";
-  }
+  if (document.getElementById("expiresAt")) document.getElementById("expiresAt").value = "";
 
-  alert("Short URL created successfully");
   loadUrls();
   loadStats();
 }
 
-// LOAD URLS
+// URLS
 async function loadUrls() {
   if (!getToken()) return;
 
@@ -154,8 +211,13 @@ async function loadUrls() {
   const list = document.getElementById("urlList");
   if (!list) return;
 
+  if (!res.ok) {
+    list.innerHTML = `<p>Failed to load links.</p>`;
+    return;
+  }
+
   if (!Array.isArray(urls) || urls.length === 0) {
-    list.innerHTML = `<p>No URLs found.</p>`;
+    list.innerHTML = `<p>No URLs found. Create your first link!</p>`;
     return;
   }
 
@@ -166,24 +228,24 @@ async function loadUrls() {
       return `
         <div class="list-item">
           <div class="list-item-top">
-            <div class="code-badge">${u.short_code}</div>
+            <div class="code-badge">${escapeHtml(u.short_code)}</div>
             <div class="click-badge">${u.click_count || 0} Clicks</div>
           </div>
 
           <p>
             <strong>Original URL:</strong><br>
-            <a href="${u.original_url}" target="_blank">${u.original_url}</a>
+            <a href="${escapeHtml(u.original_url)}" target="_blank">${escapeHtml(u.original_url)}</a>
           </p>
 
           <p>
             <strong>Short URL:</strong><br>
-            <a href="${shortUrl}" target="_blank">${shortUrl}</a>
+            <a href="${escapeHtml(shortUrl)}" target="_blank">${escapeHtml(shortUrl)}</a>
           </p>
 
           <div class="actions">
-            <button class="btn btn-secondary btn-small" onclick="copyShortUrl('${shortUrl}')">Copy</button>
-            <button class="btn btn-secondary btn-small" onclick="shareShortUrl('${shortUrl}')">Share</button>
-            <button class="btn btn-danger btn-small" onclick="deleteUrl('${u.short_code}')">Delete</button>
+            <button class="btn btn-secondary btn-small" onclick="copyShortUrl('${escapeHtml(shortUrl)}')">Copy</button>
+            <button class="btn btn-secondary btn-small" onclick="shareShortUrl('${escapeHtml(shortUrl)}')">Share</button>
+            <button class="btn btn-danger btn-small" onclick="deleteUrl('${escapeHtml(u.short_code)}')">Delete</button>
           </div>
         </div>
       `;
@@ -191,41 +253,6 @@ async function loadUrls() {
     .join("");
 }
 
-// STATS
-async function loadStats() {
-  if (!getToken()) return;
-
-  const res = await fetch(`${API_BASE}/analytics/summary`, {
-    headers: authHeaders()
-  });
-
-  const data = await res.json();
-
-  const statsBox = document.getElementById("statsBox");
-  if (statsBox) {
-    statsBox.innerHTML = `
-      <div class="stat-card">
-        <h4>Total URLs</h4>
-        <p>${data.totalUrls || 0}</p>
-      </div>
-      <div class="stat-card">
-        <h4>Total Clicks</h4>
-        <p>${data.totalClicks || 0}</p>
-      </div>
-      <div class="stat-card">
-        <h4>Avg Clicks</h4>
-        <p>${data.avgClicksPerUrl || 0}</p>
-      </div>
-    `;
-  }
-
-  const analyticsStatsBox = document.getElementById("analyticsStatsBox");
-  if (analyticsStatsBox) {
-    analyticsStatsBox.innerHTML = statsBox ? statsBox.innerHTML : "";
-  }
-}
-
-// DELETE URL
 async function deleteUrl(code) {
   if (!confirm("Are you sure you want to delete this URL?")) return;
 
@@ -237,18 +264,15 @@ async function deleteUrl(code) {
   const data = await res.json();
   if (!res.ok) return alert(data.error || "Delete failed");
 
-  alert("URL deleted successfully");
   loadUrls();
   loadStats();
 }
 
-// COPY
 function copyShortUrl(url) {
   navigator.clipboard.writeText(url);
   alert("Short URL copied");
 }
 
-// SHARE
 async function shareShortUrl(url) {
   if (navigator.share) {
     await navigator.share({
@@ -257,22 +281,77 @@ async function shareShortUrl(url) {
       url
     });
   } else {
-    navigator.clipboard.writeText(url);
+    await navigator.clipboard.writeText(url);
     alert("Share not supported. Link copied");
   }
 }
 
-// THEME
-function toggleTheme() {
-  document.body.classList.toggle("light");
-  localStorage.setItem(
-    "theme",
-    document.body.classList.contains("light") ? "light" : "dark"
-  );
+// STATS
+async function loadStats() {
+  if (!getToken()) return;
+
+  const res = await fetch(`${API_BASE}/analytics/summary`, {
+    headers: authHeaders()
+  });
+
+  const data = await res.json();
+  if (!res.ok) return;
+
+  const html = `
+    <div class="stat-card">
+      <h4>Total URLs</h4>
+      <p>${data.totalUrls || 0}</p>
+    </div>
+    <div class="stat-card">
+      <h4>Total Clicks</h4>
+      <p>${data.totalClicks || 0}</p>
+    </div>
+    <div class="stat-card">
+      <h4>Avg Clicks</h4>
+      <p>${data.avgClicksPerUrl || 0}</p>
+    </div>
+  `;
+
+  const statsBox = document.getElementById("statsBox");
+  if (statsBox) statsBox.innerHTML = html;
+
+  const analyticsStatsBox = document.getElementById("analyticsStatsBox");
+  if (analyticsStatsBox) analyticsStatsBox.innerHTML = html;
+}
+
+async function loadTopLinks() {
+  if (!getToken()) return;
+
+  const box = document.getElementById("topLinks");
+  if (!box) return;
+
+  const res = await fetch(`${API_BASE}/analytics/top-links`, {
+    headers: authHeaders()
+  });
+
+  const links = await res.json();
+  if (!res.ok || !Array.isArray(links) || links.length === 0) {
+    box.innerHTML = `<p>No top links yet.</p>`;
+    return;
+  }
+
+  box.innerHTML = links
+    .map(
+      (link) => `
+      <div class="list-item">
+        <div class="list-item-top">
+          <div class="code-badge">${escapeHtml(link.short_code)}</div>
+          <div class="click-badge">${link.click_count || 0} Clicks</div>
+        </div>
+        <p>${escapeHtml(link.original_url)}</p>
+      </div>
+    `
+    )
+    .join("");
 }
 
 // INIT
-window.onload = () => {
+window.addEventListener("load", () => {
   if (localStorage.getItem("theme") === "light") {
     document.body.classList.add("light");
   }
@@ -287,38 +366,7 @@ window.onload = () => {
   }
 
   if (getToken()) {
-    loadUrls();
     loadStats();
+    loadUrls();
   }
-};
-// ===== UI FUNCTIONS FIX =====
-
-// Auth popup toggle
-function toggleAuthPopup() {
-  const popup = document.getElementById("authPopup");
-  if (!popup) return;
-
-  popup.style.display =
-    popup.style.display === "block" ? "none" : "block";
-}
-
-// Section switch (Dashboard / Links / Analytics etc.)
-function showSection(sectionId) {
-  const sections = document.querySelectorAll(".section");
-
-  sections.forEach((sec) => {
-    sec.style.display = "none";
-  });
-
-  const target = document.getElementById(sectionId);
-  if (target) {
-    target.style.display = "block";
-  }
-}
-// Go to section from buttons
-function goToSection(sectionId, navIndex) {
-  const navItems = document.querySelectorAll(".nav-item");
-  const navButton = navItems[navIndex] || null;
-
-  showSection(sectionId, navButton);
-}
+});
