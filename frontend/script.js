@@ -1,17 +1,6 @@
-// CONFIG
-const API_BASE =
-  window.location.hostname.includes("localhost") ||
-  window.location.hostname.includes("127.0.0.1")
-    ? "http://localhost:5000/api"
-    : "https://url-shortener-backend-ib6u.onrender.com/api";
+const API_BASE = "https://url-shortener-backend-ib6u.onrender.com/api";
+const SHORT_BASE = "https://url-shortener-backend-ib6u.onrender.com";
 
-const SHORT_BASE =
-  window.location.hostname.includes("localhost") ||
-  window.location.hostname.includes("127.0.0.1")
-    ? "http://localhost:5000"
-    : "https://url-shortener-backend-ib6u.onrender.com";
-
-// HELPERS
 function getToken() {
   return localStorage.getItem("token");
 }
@@ -50,7 +39,6 @@ function escapeHtml(value) {
   return div.innerHTML;
 }
 
-// UI
 function updateAuthUI() {
   const user = getCurrentUser();
 
@@ -105,7 +93,6 @@ function toggleTheme() {
   );
 }
 
-// AUTH
 async function signupUser() {
   const name = document.getElementById("signupName")?.value.trim();
   const email = document.getElementById("signupEmail")?.value.trim();
@@ -126,7 +113,6 @@ async function signupUser() {
     const data = await res.json();
 
     if (!res.ok) {
-      console.error("Signup error:", data);
       alert(data.error || data.message || "Failed to create account");
       return;
     }
@@ -137,8 +123,7 @@ async function signupUser() {
     loadStats();
     loadUrls();
   } catch (error) {
-    console.error("Signup network error:", error);
-    alert("Backend connection failed. Check Render backend is live.");
+    alert("Backend connection failed. Check backend URL or CORS.");
   }
 }
 
@@ -161,7 +146,6 @@ async function loginUser() {
     const data = await res.json();
 
     if (!res.ok) {
-      console.error("Login error:", data);
       alert(data.error || data.message || "Login failed");
       return;
     }
@@ -172,8 +156,7 @@ async function loginUser() {
     loadStats();
     loadUrls();
   } catch (error) {
-    console.error("Login network error:", error);
-    alert("Backend connection failed. Check Render backend is live.");
+    alert("Backend connection failed. Check backend URL or CORS.");
   }
 }
 
@@ -182,7 +165,6 @@ function logoutUser() {
   location.reload();
 }
 
-// SHORTEN
 async function shortenUrl() {
   if (!getToken()) {
     alert("Please login first");
@@ -238,12 +220,10 @@ async function shortenUrl() {
     loadUrls();
     loadStats();
   } catch (error) {
-    console.error("Shorten error:", error);
     alert("Backend connection failed while creating short URL");
   }
 }
 
-// URLS
 async function loadUrls() {
   if (!getToken()) return;
 
@@ -277,13 +257,11 @@ async function loadUrls() {
               <div class="click-badge">${u.click_count || 0} Clicks</div>
             </div>
 
-            <p>
-              <strong>Original URL:</strong><br>
+            <p><strong>Original URL:</strong><br>
               <a href="${escapeHtml(u.original_url)}" target="_blank">${escapeHtml(u.original_url)}</a>
             </p>
 
-            <p>
-              <strong>Short URL:</strong><br>
+            <p><strong>Short URL:</strong><br>
               <a href="${escapeHtml(shortUrl)}" target="_blank">${escapeHtml(shortUrl)}</a>
             </p>
 
@@ -320,7 +298,6 @@ async function deleteUrl(code) {
     loadUrls();
     loadStats();
   } catch (error) {
-    console.error("Delete error:", error);
     alert("Backend connection failed while deleting URL");
   }
 }
@@ -343,7 +320,6 @@ async function shareShortUrl(url) {
   }
 }
 
-// STATS
 async function loadStats() {
   if (!getToken()) return;
 
@@ -356,18 +332,9 @@ async function loadStats() {
     if (!res.ok) return;
 
     const html = `
-      <div class="stat-card">
-        <h4>Total URLs</h4>
-        <p>${data.totalUrls || 0}</p>
-      </div>
-      <div class="stat-card">
-        <h4>Total Clicks</h4>
-        <p>${data.totalClicks || 0}</p>
-      </div>
-      <div class="stat-card">
-        <h4>Avg Clicks</h4>
-        <p>${data.avgClicksPerUrl || 0}</p>
-      </div>
+      <div class="stat-card"><h4>Total URLs</h4><p>${data.totalUrls || 0}</p></div>
+      <div class="stat-card"><h4>Total Clicks</h4><p>${data.totalClicks || 0}</p></div>
+      <div class="stat-card"><h4>Avg Clicks</h4><p>${data.avgClicksPerUrl || 0}</p></div>
     `;
 
     const statsBox = document.getElementById("statsBox");
@@ -401,23 +368,21 @@ async function loadTopLinks() {
     box.innerHTML = links
       .map(
         (link) => `
-        <div class="list-item">
-          <div class="list-item-top">
-            <div class="code-badge">${escapeHtml(link.short_code)}</div>
-            <div class="click-badge">${link.click_count || 0} Clicks</div>
+          <div class="list-item">
+            <div class="list-item-top">
+              <div class="code-badge">${escapeHtml(link.short_code)}</div>
+              <div class="click-badge">${link.click_count || 0} Clicks</div>
+            </div>
+            <p>${escapeHtml(link.original_url)}</p>
           </div>
-          <p>${escapeHtml(link.original_url)}</p>
-        </div>
-      `
+        `
       )
       .join("");
   } catch (error) {
-    console.error("Top links error:", error);
     box.innerHTML = `<p>Failed to load top links.</p>`;
   }
 }
 
-// INIT
 window.addEventListener("load", () => {
   if (localStorage.getItem("theme") === "light") {
     document.body.classList.add("light");
