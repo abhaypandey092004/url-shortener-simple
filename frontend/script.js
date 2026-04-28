@@ -122,7 +122,7 @@ async function signupUser() {
     toggleAuthPopup();
     loadStats();
     loadUrls();
-  } catch (error) {
+  } catch {
     alert("Backend connection failed. Check backend URL or CORS.");
   }
 }
@@ -155,7 +155,7 @@ async function loginUser() {
     toggleAuthPopup();
     loadStats();
     loadUrls();
-  } catch (error) {
+  } catch {
     alert("Backend connection failed. Check backend URL or CORS.");
   }
 }
@@ -195,14 +195,7 @@ async function shortenUrl() {
     }
 
     const result = document.getElementById("result");
-    if (result) {
-      result.innerHTML = `
-        <div class="message-success">
-          <strong>Short URL created:</strong><br>
-          <a href="${escapeHtml(data.shortUrl)}" target="_blank">${escapeHtml(data.shortUrl)}</a>
-        </div>
-      `;
-    }
+    if (result) result.innerHTML = "";
 
     const qrBox = document.getElementById("qrBox");
     if (qrBox) {
@@ -219,7 +212,7 @@ async function shortenUrl() {
 
     loadUrls();
     loadStats();
-  } catch (error) {
+  } catch {
     alert("Backend connection failed while creating short URL");
   }
 }
@@ -297,7 +290,7 @@ async function deleteUrl(code) {
 
     loadUrls();
     loadStats();
-  } catch (error) {
+  } catch {
     alert("Backend connection failed while deleting URL");
   }
 }
@@ -378,7 +371,7 @@ async function loadTopLinks() {
         `
       )
       .join("");
-  } catch (error) {
+  } catch {
     box.innerHTML = `<p>Failed to load top links.</p>`;
   }
 }
